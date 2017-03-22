@@ -16,7 +16,7 @@ class HandlerFactory {
 
   // Make sure its just a function for now
   _validateHandler(name, handler) {
-    if (!_.isFunction(handler)) throw new Error('Function handlers are the only supported type');
+    if (!_.isFunction(handler)) throw new Error('No valid handlers were provided');
 
     if (_.isEmpty(name)) {
       let msg;
@@ -135,13 +135,15 @@ class HandlerFactory {
   register(handlers, hooks) {
     let isGlobal = true;
 
-    if (!_.isArray(handlers)) {
+    if (!_.isArray(handlers) && !_.isPlainObject(handlers)) {
       handlers = [handlers];
       isGlobal = false;
     }
 
-    _.forEach(handlers, (handler) => {
-      this.registerByName(handler.name, handler, hooks);
+    _.forEach(handlers, (handler, key) => {
+      let name = key || handler.name;
+
+      this.registerByName(name, handler, hooks);
 
       // Setup the hooks for the handler if any
       if (!isGlobal) {
@@ -164,10 +166,6 @@ class HandlerFactory {
 
     // Set handler if not registered
     if (!this.isRegistered(handler)) this._handlers[name] = handler;
-
-    if (hooks) {
-      _.forEach(_.keys(hooks), (order) => this[order](handler, hooks[order]));
-    }
   }
 
   // Produces an object with the function exports
