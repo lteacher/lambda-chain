@@ -2,6 +2,9 @@
 
 > _Promisify lambda handlers and allow before and after function chains_
 
+[![Build Status](https://travis-ci.org/lteacher/lambda-chain.svg?branch=master)](https://travis-ci.org/lteacher/lambda-chain)
+[![Coverage Status](https://coveralls.io/repos/github/lteacher/lambda-chain/badge.svg?branch=master)](https://coveralls.io/github/lteacher/lambda-chain?branch=master)
+
 ## Install
 
 `npm install --save lambda-chain`
