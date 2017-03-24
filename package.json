@@ -4,7 +4,9 @@
   "description": "An AWS lambda handler promies wrapper and chain (i.e middleware) executor",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nyc mocha",
+    "test-watch": "mocha -w",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "keywords": [
     "aws",

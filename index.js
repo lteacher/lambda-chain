@@ -10,8 +10,7 @@ const requiresName = () => vComp('6.8.0', process.version.substring(1)) >= 0;
  */
 class HandlerFactory {
   constructor() {
-    this._handlers = {};
-    this._hooks = { before: {}, after: {} };
+    this.reset();
   }
 
   // Make sure its just a function for now
@@ -41,11 +40,9 @@ class HandlerFactory {
   _execHandler(name) {
     return (event, context, cb) => {
       try {
-        const result = this._buildExecutionChain(this._handlers[name], event, context);
+        const result = this._buildExecutionChain(name, event, context);
 
-        Promise.resolve(result)
-          .then((value) => cb(null, value))
-          .catch(cb);
+        result.then((value) => cb(null, value)).catch(cb);
       } catch (error) {
         cb(error);
       }
@@ -56,7 +53,7 @@ class HandlerFactory {
   _addHooks() {
     let order, handler, hooks;
 
-    if (arguments.length < 2) throw new Error('Incorrect number of arguments');
+    if (arguments.length < 2 || arguments.length > 3) throw new Error('Incorrect number of arguments');
 
     if (arguments.length == 2) {
       order = arguments[0];
@@ -71,8 +68,8 @@ class HandlerFactory {
         handler = { name: handler };
       }
 
-      if(_.isEmpty(handler.name) && requiresName()) {
-        throw new Error('Hooks must be added by name for node versions <6.8.0');
+      if(_.isEmpty(handler.name)) {
+        throw new Error('Handler name missing. Hooks can\'t be added');
       }
     }
 
@@ -84,10 +81,10 @@ class HandlerFactory {
     });
   }
 
-  _buildExecutionChain(handler, event, context) {
+  _buildExecutionChain(name, event, context) {
     let chain = Promise.resolve();
 
-    let hooks = this._getHooks(handler);
+    let hooks = this._getHooks(name);
 
     _.forEach(hooks, hook => {
       chain = chain.then(response => {
@@ -99,34 +96,34 @@ class HandlerFactory {
   }
 
   // Get the hook functions for some handler
-  _getHooks(handler) {
+  _getHooks(handlerName) {
     return _.reduce(this._hooks, (result, hooks, order) => {
       let addHooks = _(hooks)
-        .filter((hook, name) => name === handler.name || '*')
+        .filter((hook, name) => name == handlerName || name ==  '*')
         .values()
         .flatten()
         .value()
 
       return order === 'after' ? _.concat(result, addHooks) : _.concat(addHooks, result);
-    }, [handler])
+    }, [this._handlers[handlerName]])
   }
 
   /**
    * Add single or multiple global, or handler specific hooks before or after
    */
   before() {
-    let args = Array.prototype.concat.apply(['before'], arguments);
-
-    return this._addHooks.apply(this, args);
+    const addHooks = _.curry(this._addHooks, arguments.length + 1);
+    addHooks('before').apply(this, arguments);
   }
 
   after() {
-    let args = Array.prototype.concat.apply(['after'], arguments);
-
-    return this._addHooks.apply(this, args);
+    const addHooks = _.curry(this._addHooks, arguments.length + 1);
+    addHooks('after').apply(this, arguments);
   }
 
-  isRegistered(handler) { return _.has(this._handlers, handler.name); }
+  isRegistered(handler) {
+    return _.has(this._handlers, _.isFunction(handler) ? handler.name : handler);
+  }
 
   /**
    * Register a single handler function. It will be wrapped and set as an export
@@ -134,16 +131,19 @@ class HandlerFactory {
    */
   register(handlers, hooks) {
     let isGlobal = true;
+    let useKey = false;
 
-    if (!_.isArray(handlers) && !_.isPlainObject(handlers)) {
+    if (_.isPlainObject(handlers)) {
+      useKey = true;
+    } else if (!_.isArray(handlers)) {
       handlers = [handlers];
       isGlobal = false;
     }
 
     _.forEach(handlers, (handler, key) => {
-      let name = key || handler.name;
+      let name =  useKey ? key : handler.name;
 
-      this.registerByName(name, handler, hooks);
+      this.registerByName(name, handler);
 
       // Setup the hooks for the handler if any
       if (!isGlobal) {
@@ -161,11 +161,15 @@ class HandlerFactory {
     }
   }
 
-  registerByName(name, handler, hooks) {
+  registerByName(name, handler) {
+    if (arguments.length > 2) throw new Error(
+      'No more than two args can be supplied. To provide hooks, use register or before / after'
+    )
+
     this._validateHandler(name, handler);
 
     // Set handler if not registered
-    if (!this.isRegistered(handler)) this._handlers[name] = handler;
+    if (!this.isRegistered(name)) this._handlers[name] = handler;
   }
 
   // Produces an object with the function exports
@@ -175,6 +179,11 @@ class HandlerFactory {
       .reduce((result, name) => (
         _.set(result, name, this._execHandler(name))
       ), {});
+  }
+
+  reset() {
+    this._handlers = {};
+    this._hooks = { before: {}, after: {} };
   }
 }
 
