@@ -13,6 +13,7 @@ module.exports = {
   isRegistered: factory.isRegistered.bind(factory),
   before: factory.before.bind(factory),
   after: factory.after.bind(factory),
+  exports: factory.exports.bind(factory),
   Handler: Handler,
   HttpEventHandler: HttpEventHandler
 }
