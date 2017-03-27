@@ -415,6 +415,34 @@ describe('HandlerFactory', () => {
           done();
         });
     }));
+
+    it('should include Handler classes in the chain', (done) => {
+      let hooks = {
+        first: () => 'first',
+        last: (event, context, res) => {
+          expect(res).to.be.equal('handled!');
+          return 'last';
+        }
+      }
+
+      class TestHandler extends Handler {
+        handle(res) {
+          expect(res).to.be.equal('first');
+          return 'handled!'
+        }
+      }
+
+      lambda.register(TestHandler);
+      lambda.before(TestHandler, hooks.first);
+      lambda.after(TestHandler, hooks.last);
+
+      const chain = lambda._buildExecutionChain('TestHandler');
+
+      chain
+        .then(res => { expect(res).to.be.equal('last') })
+        .then(done)
+        .catch(done);
+    });
   });
 
   describe('#_execHandler', () => {
@@ -438,6 +466,22 @@ describe('HandlerFactory', () => {
         expect(err.message).to.be.equal('boom!');
         done();
       });
+    });
+  });
+
+  describe('#exports', () => {
+    it('should return an object with all the handlers', () => {
+      const handlers = {
+        first: () => 'first',
+        second: () => 'second',
+        third: () => 'third'
+      }
+
+      lambda.register(handlers);
+
+      expect(_.keys(lambda.exports())).to.have.members([
+        'first', 'second', 'third'
+      ]);
     });
   });
 });
