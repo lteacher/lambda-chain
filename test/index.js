@@ -8,7 +8,7 @@ describe('main package', () => {
 
   it('should export all the correct functions', () => {
     expect(_.keys(lambda)).to.have.members([
-      'register', 'registerByName', 'before', 'after',
+      'register', 'registerByName', 'before', 'after', 'reset',
       'Handler', 'HttpEventHandler', 'isRegistered', 'exports'
     ]);
   });

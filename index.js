@@ -14,6 +14,7 @@ module.exports = {
   before: factory.before.bind(factory),
   after: factory.after.bind(factory),
   exports: factory.exports.bind(factory),
+  reset: factory.reset.bind(factory),
   Handler: Handler,
   HttpEventHandler: HttpEventHandler
 }
