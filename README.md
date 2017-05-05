@@ -29,7 +29,7 @@ lambda.register(handler);
 module.exports = lambda.exports();
 ```
 
-_**Note: ** When using `register`, function names are detected. Different node versions handle function naming differently. You need to consider this when passing function handlers (not hooks). _
+_**Note:** When using `register`, function names are detected. Different node versions handle function naming differently. You need to consider this when passing function handlers (not hooks)._
 
 
 
