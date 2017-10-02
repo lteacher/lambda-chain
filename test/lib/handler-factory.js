@@ -45,12 +45,11 @@ describe('HandlerFactory', () => {
     });
 
     it('should throw an error when given an empty name', () => {
-      let vMsg = 'Node version is <6.8.0 so named functions are required.';
       let nMsg = 'Function name is unknown. Handlers can\'t be anonymous';
       let rMsg = 'If you use anonymous functions you must use registerByName()';
 
       expect(() => lambda._validateHandler(undefined, console.log)).to.throw(
-        new RegExp(`(${vMsg}|${nMsg})\n${rMsg}`)
+        new RegExp(`(${nMsg})\n${rMsg}`)
       );
     });
   });
