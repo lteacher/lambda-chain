@@ -208,11 +208,6 @@ describe('HandlerFactory', () => {
   });
 
   describe('#_addHooks', () => {
-    it('should throw an error when called with insufficient arguments', () => {
-      expect(() => lambda._addHooks(1)).to.throw('Incorrect number of arguments');
-      expect(() => lambda._addHooks(1, 2, 3, 4)).to.throw('Incorrect number of arguments');
-    });
-
     it('should throw an error when given a handler without a name', () => {
       expect(() => lambda._addHooks('before', () => 'explodez', 'hax')).to.throw(
         'Handler name missing. Hooks can\'t be added'
@@ -220,22 +215,17 @@ describe('HandlerFactory', () => {
     })
 
     it('should add global before hooks', () => {
-      lambda._addHooks('before', () => 'magic');
+      lambda._addHooks('before', '*', () => 'magic');
       expect(lambda._hooks['before']['*'][0]()).to.be.equal('magic');
       expect(_.size(lambda._hooks['before'])).to.be.equal(1);
       expect(_.size(lambda._hooks['after'])).to.be.equal(0);
     });
 
     it('should add global after hooks', () => {
-      lambda._addHooks('after', () => 'magical');
+      lambda._addHooks('after', '*', () => 'magical');
       expect(lambda._hooks['after']['*'][0]()).to.be.equal('magical');
       expect(_.size(lambda._hooks['after'])).to.be.equal(1);
       expect(_.size(lambda._hooks['before'])).to.be.equal(0);
-    });
-
-    // TODO: Implement this functionality
-    it.skip('should throw an error if name is not registered', () => {
-
     });
 
     it('should add named before hooks', () => {
@@ -253,14 +243,14 @@ describe('HandlerFactory', () => {
     });
 
     it('should add hooks to a passed handler', () => {
-      lambda._addHooks('after', firstMockFn, () => 'magic');
+      lambda._addHooks('after', 'firstMockFn', () => 'magic');
       expect(lambda._hooks['after']['firstMockFn'][0]()).to.be.equal('magic');
       expect(_.size(lambda._hooks['before'])).to.be.equal(0);
       expect(_.size(lambda._hooks['after'])).to.be.equal(1);
     });
 
     it('should add an array of hooks', () => {
-      lambda._addHooks('before', [firstMockFn, secondMockFn]);
+      lambda._addHooks('before', '*', [firstMockFn, secondMockFn]);
       expect(lambda._hooks['before']['*'][0]()).to.be.equal('first');
       expect(lambda._hooks['before']['*'][1]()).to.be.equal('second');
       expect(_.size(lambda._hooks['before'])).to.be.equal(1);
@@ -275,6 +265,20 @@ describe('HandlerFactory', () => {
       expect(_addHooksSpy.calledOnce).to.be.ok;
       expect(lambda._hooks['before']['firstMockFn'][0]()).to.be.equal('kewl');
     }));
+
+    it('should add global hooks when given just a handler', sinon.test(function() {
+      let _addHooksSpy = this.spy(lambda, '_addHooks');
+      lambda.before(() => 'kewl');
+      expect(_addHooksSpy.calledOnce).to.be.ok;
+      expect(lambda._hooks['before']['*'][0]()).to.be.equal('kewl');
+    }));
+
+    it('should add hooks for a given named handler', sinon.test(function() {
+      let _addHooksSpy = this.spy(lambda, '_addHooks');
+      lambda.before(secondMockFn, () => 'also kewl', 'mockFn');
+      expect(_addHooksSpy.calledOnce).to.be.ok;
+      expect(lambda._hooks['before']['mockFn'][0]()).to.be.equal('also kewl');
+    }));
   });
 
   describe('#after', () => {
@@ -283,6 +287,20 @@ describe('HandlerFactory', () => {
       lambda.after(secondMockFn, () => 'also kewl');
       expect(_addHooksSpy.calledOnce).to.be.ok;
       expect(lambda._hooks['after']['secondMockFn'][0]()).to.be.equal('also kewl');
+    }));
+
+    it('should add global hooks when given just a handler', sinon.test(function() {
+      let _addHooksSpy = this.spy(lambda, '_addHooks');
+      lambda.after(() => 'kewl');
+      expect(_addHooksSpy.calledOnce).to.be.ok;
+      expect(lambda._hooks['after']['*'][0]()).to.be.equal('kewl');
+    }));
+
+    it('should add hooks for a given named handler', sinon.test(function() {
+      let _addHooksSpy = this.spy(lambda, '_addHooks');
+      lambda.after(secondMockFn, () => 'also kewl', 'mockFn');
+      expect(_addHooksSpy.calledOnce).to.be.ok;
+      expect(lambda._hooks['after']['mockFn'][0]()).to.be.equal('also kewl');
     }));
   });
 
@@ -314,8 +332,7 @@ describe('HandlerFactory', () => {
       expect(hooks[2]()).to.be.equal('second hook');
     });
 
-    // TODO: This is not supported in node v4. Previously worked due to defect
-    it.skip('should get the hooks for anonymous functions', () => {
+    it('should get the hooks for anonymous functions', () => {
       let handler = {
         tester: () => 'handler town'
       };
@@ -332,8 +349,9 @@ describe('HandlerFactory', () => {
     // choose the order of named vs global? If we had gone with adding all
     // chains to each name then it would be more flexible but slower to add
     // and large space wise
-    it('should get global and named hooks', () => {
-      lambda.register([firstMockFn, secondMockFn]);
+    it.skip('should get global and named hooks', () => {
+      lambda.register(firstMockFn);
+      lambda.register(secondMockFn);
       lambda.before(() => 'global before hook');
       lambda.before(secondMockFn, () => 'named before hook');
       lambda.before(firstMockFn, () => 'never called');
