@@ -1,7 +1,7 @@
 {
   "name": "lambda-chain",
   "version": "0.1.2",
-  "description": "An AWS lambda handler promies wrapper and chain (i.e middleware) executor",
+  "description": "An AWS lambda handler promise wrapper and chain (i.e middleware) executor",
   "main": "index.js",
   "scripts": {
     "test": "nyc mocha test/*",
@@ -10,7 +10,10 @@
   },
   "keywords": [
     "aws",
+    "awslambda",
     "lambda",
+    "middleware",
+    "chain",
     "handler"
   ],
   "author": "hugo.armstrong@gmail.com",
@@ -25,13 +28,5 @@
   },
   "dependencies": {
     "lodash": "^4.17.4"
-  },
-  "keywords": [
-    "aws",
-    "awslambda",
-    "lambda",
-    "middleware",
-    "chain",
-    "handler"
-  ]
+  }
 }

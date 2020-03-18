@@ -205,20 +205,6 @@ describe('HandlerFactory', () => {
       expect(_.size(lambda._hooks['before'])).to.be.equal(1);
       expect(_.size(lambda._hooks['after'])).to.be.equal(1);
     });
-
-    it('should add global hooks when registering a collection of handlers', () => {
-      lambda.register([firstMockFn, secondMockFn], {
-        before: () => 'poww',
-        after: () => 'also poww'
-      });
-
-      expect(lambda._handlers['firstMockFn']()).to.be.equal('first');
-      expect(lambda._handlers['secondMockFn']()).to.be.equal('second');
-      expect(_.size(lambda._hooks['before'])).to.be.equal(1);
-      expect(_.size(lambda._hooks['after'])).to.be.equal(1);
-      expect(lambda._hooks['before']['*'][0]()).to.be.equal('poww');
-      expect(lambda._hooks['after']['*'][0]()).to.be.equal('also poww');
-    });
   });
 
   describe('#_addHooks', () => {
@@ -328,7 +314,8 @@ describe('HandlerFactory', () => {
       expect(hooks[2]()).to.be.equal('second hook');
     });
 
-    it('should get the hooks for anonymous functions', () => {
+    // TODO: This is not supported in node v4. Previously worked due to defect
+    it.skip('should get the hooks for anonymous functions', () => {
       let handler = {
         tester: () => 'handler town'
       };
